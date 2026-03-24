@@ -43,7 +43,7 @@ const Index = () => {
         <div className="mx-auto flex max-w-4xl items-center gap-2.5 px-6 py-4">
           <BookOpen className="h-6 w-6 text-accent" />
           <span className="font-display text-xl tracking-tight text-foreground">
-            Literate Terms
+            Terms Simplified
           </span>
         </div>
       </header>
@@ -73,7 +73,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground font-body">
-        Literate Terms — Making legal text human‑readable.
+        Terms Simplified — Making legal text human‑readable.
       </footer>
     </div>
   );
