@@ -43,7 +43,7 @@ const Index = () => {
         <div className="mx-auto flex max-w-4xl items-center gap-2.5 px-6 py-4">
           <BookOpen className="h-6 w-6 text-accent" />
           <span className="font-display text-xl tracking-tight text-foreground">
-            Literate Terms
+            Terms Simplified
           </span>
         </div>
       </header>
