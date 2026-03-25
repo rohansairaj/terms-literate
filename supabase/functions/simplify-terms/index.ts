@@ -32,6 +32,17 @@ const buildPrompt = (language: string, text: string) => {
 - कोई कानूनी शब्दावली नहीं
 - summary: अधिकतम 5 बिंदु
 - ईमानदार रहें`,
+      fewShot: {
+        user: "इन नियम और शर्तों का विश्लेषण करें:\n\nWe collect your email and may share it with partners.",
+        assistant: JSON.stringify({
+          readingTime: "~10 sec",
+          riskScore: 5,
+          verdict: "Caution",
+          summary: ["वे आपका ईमेल पता इकट्ठा करते हैं।", "वे आपका ईमेल दूसरी कंपनियों को दे सकते हैं।"],
+          agreements: ["आप अपना ईमेल देने के लिए सहमत हैं।", "आप सहमत हैं कि वे इसे दूसरों को दे सकते हैं।"],
+          risks: ["आपका ईमेल अजनबी कंपनियों को दिया जा सकता है।"],
+        }),
+      },
       user: `इन नियम और शर्तों का विश्लेषण करें और सरल बनाएं:\n\n${truncated}`,
     };
   }
