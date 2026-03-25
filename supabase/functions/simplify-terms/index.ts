@@ -124,6 +124,10 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: prompt.system },
+          ...(prompt.fewShot ? [
+            { role: "user", content: prompt.fewShot.user },
+            { role: "assistant", content: prompt.fewShot.assistant },
+          ] : []),
           { role: "user", content: prompt.user },
         ],
         response_format: { type: "json_object" },
