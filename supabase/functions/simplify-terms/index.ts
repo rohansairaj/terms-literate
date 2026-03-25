@@ -6,15 +6,66 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const languageInstructions: Record<string, string> = {
-  english: "Write ALL output text in English.",
-  hindi: "Write ALL output text (summary bullets, agreements, risks) in Hindi (हिन्दी). Use Devanagari script. The JSON keys must remain in English but all string values must be in Hindi. Ensure accurate, natural Hindi — not machine-translated.",
-  tamil: "Write ALL output text (summary bullets, agreements, risks) in Tamil (தமிழ்). Use Tamil script. The JSON keys must remain in English but all string values must be in Tamil. Ensure accurate, natural Tamil — not machine-translated.",
-};
+const buildPrompt = (language: string, text: string) => {
+  const truncated = text.trim().slice(0, 30000);
 
-const buildSystemPrompt = (language: string) => `You are a legal-text simplifier. Your job is to read Terms & Conditions (or any legal document) and rewrite it so a 12-year-old can understand it. The simplified version must be readable in under 60 seconds.
+  if (language === "hindi") {
+    return {
+      system: `आप एक कानूनी-पाठ सरलीकरणकर्ता हैं। आपका काम नियम और शर्तों को इतना सरल करना है कि एक 12 साल का बच्चा समझ सके।
 
-${languageInstructions[language] || languageInstructions.english}
+आपको यह JSON ढांचा लौटाना होगा (कोई markdown नहीं, सिर्फ valid JSON):
+
+{
+  "readingTime": "~40 sec",
+  "riskScore": 8,
+  "verdict": "Risky",
+  "summary": ["यह ऐप आपका नाम और फ़ोन नंबर विज्ञापनदाताओं को बेचता है।", "वे हर महीने अपने आप पैसे काट लेते हैं।"],
+  "agreements": ["आप अपनी निजी जानकारी साझा करने के लिए सहमत हैं।"],
+  "risks": ["आपकी जानकारी अजनबियों को बेची जाती है।"]
+}
+
+नियम:
+- summary, agreements, risks के सभी string values हिन्दी में लिखें (देवनागरी लिपि)
+- verdict हमेशा अंग्रेज़ी में: "Safe", "Caution", या "Risky"
+- readingTime अंग्रेज़ी में: "~40 sec"
+- सरल शब्द इस्तेमाल करें जो बच्चा समझ सके
+- कोई कानूनी शब्दावली नहीं
+- summary: अधिकतम 5 बिंदु
+- ईमानदार रहें`,
+      user: `इन नियम और शर्तों का विश्लेषण करें और सरल बनाएं:\n\n${truncated}`,
+    };
+  }
+
+  if (language === "tamil") {
+    return {
+      system: `நீங்கள் ஒரு சட்ட-உரை எளிமைப்படுத்துபவர். உங்கள் வேலை விதிமுறைகள் மற்றும் நிபந்தனைகளை 12 வயது குழந்தை புரிந்துகொள்ளும் அளவுக்கு எளிமையாக்குவது.
+
+இந்த JSON கட்டமைப்பை திருப்பி அனுப்ப வேண்டும் (markdown இல்லை, valid JSON மட்டும்):
+
+{
+  "readingTime": "~40 sec",
+  "riskScore": 8,
+  "verdict": "Risky",
+  "summary": ["இந்த ஆப் உங்கள் பெயரையும் தொலைபேசி எண்ணையும் விளம்பரதாரர்களுக்கு விற்கிறது.", "அவர்கள் ஒவ்வொரு மாதமும் தானாகவே பணம் எடுக்கிறார்கள்."],
+  "agreements": ["உங்கள் தனிப்பட்ட தகவல்களைப் பகிர ஒப்புக்கொள்கிறீர்கள்."],
+  "risks": ["உங்கள் தகவல்கள் அறிமுகமில்லாதவர்களுக்கு விற்கப்படுகிறது."]
+}
+
+விதிகள்:
+- summary, agreements, risks இன் அனைத்து string மதிப்புகளும் தமிழில் எழுதவும் (தமிழ் எழுத்து)
+- verdict எப்போதும் ஆங்கிலத்தில்: "Safe", "Caution", அல்லது "Risky"
+- readingTime ஆங்கிலத்தில்: "~40 sec"
+- குழந்தை புரிந்துகொள்ளும் எளிய வார்த்தைகளைப் பயன்படுத்தவும்
+- சட்ட வார்த்தைகள் வேண்டாம்
+- summary: அதிகபட்சம் 5 புள்ளிகள்
+- நேர்மையாக இருங்கள்`,
+      user: `இந்த விதிமுறைகள் மற்றும் நிபந்தனைகளை பகுப்பாய்வு செய்து எளிமையாக்கவும்:\n\n${truncated}`,
+    };
+  }
+
+  // English
+  return {
+    system: `You are a legal-text simplifier. Your job is to read Terms & Conditions (or any legal document) and rewrite it so a 12-year-old can understand it. The simplified version must be readable in under 60 seconds.
 
 You MUST respond using the following JSON structure exactly — no extra keys, no markdown, just valid JSON:
 
@@ -34,10 +85,12 @@ Rules:
 - agreements: list what the user is agreeing to
 - risks: list hidden charges, auto-renewals, data sharing, lawsuit waivers, etc.
 - riskScore: 1 = very safe, 10 = very risky
-- verdict: "Safe" if score ≤ 3, "Caution" if 4-6, "Risky" if ≥ 7 (keep verdict values in English)
-- readingTime value should also be in English (e.g. "~40 sec")
+- verdict: "Safe" if score ≤ 3, "Caution" if 4-6, "Risky" if ≥ 7
 - Keep each bullet under 25 words
-- Be honest — if the terms are bad, say so clearly`;
+- Be honest — if the terms are bad, say so clearly`,
+    user: `Analyze and simplify these terms & conditions:\n\n${truncated}`,
+  };
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -59,12 +112,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Truncate very long texts to avoid token limits
-    const truncated = text.trim().slice(0, 30000);
-
-    const langNote = language !== "english"
-      ? `\n\nCRITICAL LANGUAGE REQUIREMENT: You MUST write ALL string values (summary bullets, agreements, risks) in ${language === "hindi" ? "Hindi (हिन्दी) using Devanagari script" : "Tamil (தமிழ்) using Tamil script"}. The verdict and readingTime values stay in English. Every other string MUST be in ${language === "hindi" ? "Hindi" : "Tamil"}, NOT English.`
-      : "";
+    const prompt = buildPrompt(language, text);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -75,8 +123,8 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: buildSystemPrompt(language) },
-          { role: "user", content: `Analyze and simplify these terms & conditions:${langNote}\n\n${truncated}` },
+          { role: "system", content: prompt.system },
+          { role: "user", content: prompt.user },
         ],
         response_format: { type: "json_object" },
       }),
