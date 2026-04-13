@@ -1,4 +1,4 @@
-# terms-simplified
+# Terms-Simplified
 
 Understand Terms & Conditions in under 60 seconds.
 
@@ -17,14 +17,15 @@ An AI-powered tool that converts complex legal text into simple, easy-to-read su
 
 ## Key Features
 - 60-second readable summaries
-- Risk detection (auto-renewals, data sharing)
 - Simple language output
 - Verdict system (Safe / Caution / Risky)
 - File Upload Support
 - Estimated reading time
+- Multiple language support
 
 ## Example Output
-(Add screenshot here)
+<img width="887" height="851" alt="image" src="https://github.com/user-attachments/assets/e1395ce6-ceaa-43b2-85ee-4c1c00ab5730" />
+
 
 ## Error Handling
 - Unsupported file types are rejected
@@ -35,7 +36,6 @@ An AI-powered tool that converts complex legal text into simple, easy-to-read su
 - Reading time < 60 seconds
 - Readability level (grade 6–8)
 - User comprehension
-- Success Metrics
 - % of users identifying risks
 - Reduction in blind acceptance
 
@@ -43,11 +43,13 @@ An AI-powered tool that converts complex legal text into simple, easy-to-read su
 - Structured output instead of plain summary to improve scannability
 - Focused on risks to help users make decisions quickly
 - Limited output length to ensure usability
+- Multi language support to ensure wider audience coverage
 
 ## Limitations
 - May miss nuanced legal clauses
 - Depends on input quality
 - Supported formats include PDF (.pdf) and Word (.doc, .docx) only
+- Will not work in situations where copy-pasting terms is not possible eg: mobile application scenarios.
 
 ## Data Handling
 - Uploaded files are processed in real-time and are not stored.
